@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+
+<html lang="${lang}">
+    <head>
+        <title>#{get 'title' /}</title>
+        <meta charset="${_response_encoding}" />
+        <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/crud.css'}" />
+        <link rel="stylesheet" type="text/css" media="screen" href="@{'/public/stylesheets/redmond/jquery-ui.css'}">
+        <link rel="stylesheet" type="text/css" media="screen" href="@{'/public/stylesheets/ui.jqgrid.css'}">
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.12/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.layout-latest.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.layout.resizeTabLayout.min-1.1.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.layout.resizePaneAccordions-1.0.js'}" type="text/javascript" charset="utf-8"></script>
+              
+        <script src="@{'/public/javascripts/grid.locale-cn.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.jqGrid.min.js'}" type="text/javascript" charset="utf-8"></script>
+        
+        <SCRIPT type="text/javascript">
+        function loadIframePage (pane, $Pane) {
+			if (!$Pane) $Pane = $('.tab-layout-'+ pane);
+			var $Iframe = $Pane.attr('tagName')=='IFRAME' ? $Pane : $Pane.find('IFRAME:first');
+			if (!$Iframe.length) return; // no iframe
+			var src  = $Iframe.attr('src'),	page = $Iframe.attr('longdesc');
+			if (page && src != page) $Iframe.attr('src',page);
+		}
+		
+		var pageLayoutOptions = {			
+			name:					'pageLayout', // only for debugging
+			resizeWithWindowDelay:	250,        	// delay calling resizeAll when window is *still* resizing
+			closable:				false,
+			resizerDragOpacity:		0.5,
+			south__size:			400,
+			south__paneSelector:	".ui-layout-south",
+			center__paneSelector:	".ui-layout-center",
+			togglerContent_open:	'<div class="ui-icon ui-icon-arrow-2-n-s"></div>',
+			togglerContent_closed:	'<div class="ui-icon ui-icon-arrow-2-n-s"></div>',
+			south__spacing_open:	10
+		}
+		
+		var detailLayoutOptions = {
+			name:					'detailLayout', // only for debugging			
+			closable:				false,
+			resizerDragOpacity:		0.5,
+			east__paneSelector:		".detail-layout-east",
+			center__paneSelector:	".detail-layout-center",
+			togglerContent_open:	'<div class="ui-icon ui-icon-arrow-2-e-w"></div>',
+			togglerContent_closed:	'<div class="ui-icon ui-icon-arrow-2-e-w"></div>',
+			east__minSize:			300,
+			center__minWidth:		300,
+			spacing_open:			10
+		}; 
+				
+		var mydata = [ {id:"1",invdate:"2007-10-01",name:"test",note:"note",amount:"200.00",tax:"10.00",total:"210.00"}, {id:"2",invdate:"2007-10-02",name:"test2",note:"note2",amount:"300.00",tax:"20.00",total:"320.00"}, {id:"3",invdate:"2007-09-01",name:"test3",note:"note3",amount:"400.00",tax:"30.00",total:"430.00"}, {id:"4",invdate:"2007-10-04",name:"test",note:"note",amount:"200.00",tax:"10.00",total:"210.00"}, {id:"5",invdate:"2007-10-05",name:"test2",note:"note2",amount:"300.00",tax:"20.00",total:"320.00"}, {id:"6",invdate:"2007-09-06",name:"test3",note:"note3",amount:"400.00",tax:"30.00",total:"430.00"}, {id:"7",invdate:"2007-10-04",name:"test",note:"note",amount:"200.00",tax:"10.00",total:"210.00"}, {id:"8",invdate:"2007-10-03",name:"test2",note:"note2",amount:"300.00",tax:"20.00",total:"320.00"}, {id:"9",invdate:"2007-09-01",name:"test3",note:"note3",amount:"400.00",tax:"30.00",total:"430.00"} ];
+		
+	    $(document).ready(function () {
+	    	var pageLayout = $("body").layout( pageLayoutOptions ); 
+				
+			var detailLayout = pageLayout.panes.south				
+				.layout( detailLayoutOptions );
+			
+			detailLayout.panes.center.tabs({
+				collapsible:false,
+				show: $.layout.callbacks.resizeTabLayout
+			});
+			
+			detailLayout.panes.east.accordion({ 
+				header: "h3", fillSpace:true, autoHeight: true 
+			});
+			
+			//var grid = pageLayout.panes.center
+			$("#serviceGrid").jqGrid({ datatype: "local", autowidth: true, autoheight: true, colNames:['序号','发布时间', '服务商', '合计','税','总数','服务内容'], colModel:[ {name:'id',index:'id', width:60, sorttype:"int"}, {name:'invdate',index:'invdate', width:90, sorttype:"date"}, {name:'name',index:'name', width:100}, {name:'amount',index:'amount', width:80, align:"right",sorttype:"float"}, {name:'tax',index:'tax', width:80, align:"right",sorttype:"float"}, {name:'total',index:'total', width:80,align:"right",sorttype:"float"}, {name:'note',index:'note', width:150, sortable:false} ]})
+			;//.navGrid('#serviceGridPager');
+			for(var i=0;i<=mydata.length;i++) 
+				$("#serviceGrid").jqGrid('addRowData',i+1,mydata[i]);
+		})
+    </SCRIPT>
+        
+        <style type="text/css">		
+			.ui-layout-center{
+				line-height:1.4em;
+				margin:15px;
+				padding:0px;
+			}	
+			
+			.ui-layout-south{
+				padding:5px;
+				font-size:12px;
+			}		
+			
+			#tabs{padding:0;height:100%;}
+			
+			.ui-tabs .ui-tabs-nav li{
+			}
+			
+			#tabpanels .tab-panel { /* tab-layout containers */
+				width:		100%;
+				height:		100%;
+				padding:	0;
+				overflow:	hidden;
+			}
+						
+			.content-space{
+				margin-bottom:10px;
+			}
+			
+		</style>
+    </head>
+    <body>  
+    	<!--
+    	<div  class="ui-layout-center">  	
+	    	<table id="serviceGrid"></table>
+	    	<div id="serviceGridPager"></div>
+		</div>
+		-->
+		<table id="serviceGrid" class="ui-layout-center"></table>
+		<DIV class="ui-layout-south">					
+	        <DIV class="detail-layout-center">
+	        	<ul class="ui-state-default" sytle="height:50px" id="tabbuttons">		         
+			         <li><a href="#service-tabs-detail">服务详情</a></li>
+			         <li><a href="#provider-tabs-detail">供应商信息</a></li>        
+			         <li><a href="#subscription-tabs-detail">服务订阅</a></li> 	          
+		     	</ul>
+		     	<div id="tabpanels">
+				     <div id="service-tabs-detail" class="tab-panel">
+				     	服务详情
+					 </div>
+				     <div id="provider-tabs-detail" class="tab-panel">
+				     	供应商信息
+					 </div>
+				     <div id="subscription-tabs-detail" class="tab-panel">
+				     	填写申请表订阅
+					 </div>
+				 </div>
+			</DIV>
+			<DIV class="detail-layout-east ui-widget accordion">		
+				<h3><a href="#">服务推送</a></h3>
+				<div id="info">
+					<form method="post" action="@{Admin.push}" target="service-center">
+					<div class="content-space">
+						<textarea id="" rows="16" cols="30">服务内容</textarea>
+					</div>
+					
+					<div class="content-space"><button icon="ui-icon-search">短信推送</button><button icon="ui-icon-refresh">邮件推送</button></div>
+					</form>
+				</div>												
+			</DIV>			
+		</DIV>	
+    </body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+
+<html lang="${lang}">
+    <head>
+        <title>#{get 'title' /}</title>
+        <meta charset="${_response_encoding}" />
+        <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/crud.css'}" />
+        <link rel="stylesheet" type="text/css" media="screen" href="@{'/public/stylesheets/redmond/jquery-ui.css'}">
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.12/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.layout-latest.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.layout.resizeTabLayout.min-1.1.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.layout.resizePaneAccordions-1.0.js'}" type="text/javascript" charset="utf-8"></script>
+     	 <script src="@{'/public/javascripts/jquery.dynamicFields.js'}" type="text/javascript" charset="utf-8"></script>
+        
+        <SCRIPT type="text/javascript">
+        function loadIframePage (pane, $Pane) {
+			if (!$Pane) $Pane = $('.tab-layout-'+ pane);
+			var $Iframe = $Pane.attr('tagName')=='IFRAME' ? $Pane : $Pane.find('IFRAME:first');
+			if (!$Iframe.length) return; // no iframe
+			var src  = $Iframe.attr('src'),	page = $Iframe.attr('longdesc');
+			if (page && src != page) $Iframe.attr('src',page);
+		}
+		
+		var pageLayoutOptions = {			
+			name:					'pageLayout', // only for debugging
+			resizeWithWindowDelay:	250,        	// delay calling resizeAll when window is *still* resizing
+			resizable:				false,
+			slidable:				false,
+			closable:				false,
+			south__size:			25,
+			south__paneSelector:	".ui-layout-south",
+			center__paneSelector:	".ui-layout-center",
+			south__spacing_open:	0
+		}
+		
+		var tabsContainerLayoutOptions = {
+			name:					'tabsContainerLayout', // only for debugging
+			resizable:				false,
+			slidable:				false,
+			closable:				false,
+			north__paneSelector:	"#header",
+			center__paneSelector:	"#tabpanels",
+			spacing_open:			0,
+			center__onresize:		$.layout.callbacks.resizeTabLayout // resize ALL visible layouts nested inside
+		}; 
+		
+		var tabLayoutOptions = {
+			name:					'tabPanelLayout', // only for debugging
+			resizeWithWindow:		false,	// required because layout is 'nested' inside tabpanels container
+		//	resizeWhileDragging:	true,	// slow in IE because of the nested layouts
+			resizerDragOpacity:		0.5,
+			north__resizable:		false,
+			south__resizable:		false,
+			north__closable:		false,
+			south__closable:		false,
+			west__minSize:			200,
+			center__minWidth:		600,
+			spacing_open:			10,
+			spacing_closed:			10,
+			west__paneSelector:		".tab-layout-west",
+			center__paneSelector:	".tab-layout-center",
+			togglerContent_open:	'<div class="ui-icon ui-icon-triangle-1-w"></div>',
+			togglerContent_closed:	'<div class="ui-icon ui-icon-triangle-1-e"></div>',
+			triggerEventsOnLoad:	true, // so center__onresize is triggered when layout inits
+			west__onresize:			$.layout.callbacks.resizePaneAccordions, // ditto for west-pane		
+			//	after the layout loads, init sidebar-layouts...
+			onload: function ( layout ) {
+				//layout.panes.west.layout( sidebarLayoutOptions );
+			}		
+		};
+	
+	    $(document).ready(function () {			
+	    	var pageLayout = $("body").layout( pageLayoutOptions ); 
+
+			// first init the tabs inside the center-pane
+			// then init the layout that wraps them
+			pageLayout.panes.center
+				.tabs({
+					selected:2,
+					cache: true,
+					collapsible:false,
+					// using callback addon
+					show: $.layout.callbacks.resizeTabLayout
+				})
+				// create the layout to wrap the tab buttons (north) and panels (center)
+				.layout( tabsContainerLayoutOptions );
+			
+			
+			// init ALL the tab-layouts - all use the same options
+			$(".tab-panel").each(function(){
+				$(this).layout( tabLayoutOptions );
+			});
+			
+			// init ALL accordions (all have .accordion class assigned)
+			$(".accordion").accordion({ header: "h3", fillSpace:true, autoHeight: true });
+			
+			$('.tab-layout-center').each(function(){
+				loadIframePage("center", $(this));
+			});						
+			
+			$("button").each( function(){
+				var button = $(this);
+				var icon = button.attr("icon");
+　　　			button.button({
+					icons: {primary: icon}
+				});
+			});
+			
+			$("#selServiceModel").change( function() {
+				var url = "@{Admin.getQueryForm}?modelId="+$(this).val();
+				console.info(url);
+				$.getJSON(url, function(form){
+					$("#dynamicFields").dynamicFields(form.fields);
+					/*console.info(form);
+				 	 $.each(form.fields, function(i,field){
+				    		console.info(field);
+  					});*/
+				});
+			});
+		})
+	    </SCRIPT>
+        
+        <style type="text/css">		
+			.ui-layout-center{
+				line-height:1.4em;
+				margin:0;
+				padding:0;
+			}	
+			
+			.ui-layout-south{
+				padding:5px;
+				font-size:12px;
+			}		
+			
+			#tabs{padding:0;height:100%;}
+			
+			.ui-tabs .ui-tabs-nav li{
+				float:right;
+				margin-top:13px;
+			}
+			
+			#tabpanels .tab-panel { /* tab-layout containers */
+				width:		100%;
+				height:		100%;
+				padding:	0;
+				overflow:	hidden;
+			}
+			
+			.accordion{
+				height:100%;				
+			}
+			
+			.accordion .ui-accordion-content {
+				padding:10px;
+				font-size:12px;
+			}
+			
+			.accordion button{
+				margin-right:5px;	
+				padding-right:6px;			
+			}
+			
+			.content-space{
+				margin-bottom:10px;
+			}
+			
+		</style>
+    </head>
+    <body id="crud">    	
+		<DIV class="ui-layout-center">			
+	        <div id="tabs">	 	 
+	        	 <div id="header">
+		    		<div style="float:left;white-space:nowrap; margin-top:10px">
+						<img src="/public/images/logo.png" width="80" height="30"/>
+					</div>
+					<div style="float:left;white-space:nowrap; margin-top:5px;padding:10px;font-size:24px;color:#2E6E9E">
+						<strong>&{'crud.title'}</strong>
+						<!--
+						&nbsp;&nbsp;&nbsp;&nbsp;
+						<select id="themeSwitch">
+							<option value="redmond"> 蓝色</option>
+					    	<option value="ui-lightness"> 橘红色</option>			        
+					    </select>	
+					    -->
+						<span style="padding:5px 0 0 15px;font-size:12px;border:0" class="ui-state-default">		
+							[&nbsp;<a href="@{Secure.logout}" onclick="return confirm('您确定要退出吗？')">退出登录</a>]		
+						</span>
+					</div>
+					 <ul class="ui-state-default" sytle="height:50px" id="tabbuttons">		         
+				         <li><a href="#ui-tabs-sys">系统管理</a></li>
+				         <li><a href="#ui-tabs-info">企业服务</a></li> 
+				         <li><a href="#ui-tabs-seat">个人服务</a></li>  		          
+			     	 </ul>
+		    	</div>    	
+			    
+			     
+			     <div id="tabpanels">
+				     <div id="ui-tabs-seat" class="tab-panel">
+					     <DIV class="tab-layout-west">
+				    		<div class="accordion">	
+								<div>
+									<h3><a href="#">服务推送</a></h3>
+									<div id="info">
+										<form method="post" action="@{Admin.push}" target="service-center">
+										<div class="content-space">
+											<select size="1" style="width:178px" id="selServiceModel">
+											<option value="">--------请选择服务类型--------</option>
+											#{list items:serviceModels, as:'serviceModel'}
+											<option value="${serviceModel._id}">${serviceModel.name}</option>
+											#{/list}
+											</select>
+										</div>
+										<div class="ui-widget content-space">	
+											<div class="ui-widget-header ui-corner-top">搜索条件</div>					
+											<div class="ui-widget-content ui-corner-bottom" id="dynamicFields" style="display:block;overflow:hidden">		
+												<div class="content-space">		
+												无搜索条件
+												</div>																					
+											</div>
+										</div>
+										<div class="content-space"><button icon="ui-icon-search">查&nbsp;&nbsp;询</button><button icon="ui-icon-refresh">重&nbsp;&nbsp;置</button></div>
+										</form>
+									</div>		
+								</div>								
+								<div>
+									<h3><a href="#">需求传达</a></h3>
+									<div id="requirement">
+										<div class="content-space"><select size="1" id="" style="width:178px"><option value="">--指定地区--</option></select></div>
+										<div class="content-space"><select size="1" id="" style="width:178px"><option value="">--指定行业--</option></select></div>
+										<div class="content-space">公司名称: <input type="text" id=""  style="width:173px"/></div>
+										<div class="content-space"><button  icon="ui-icon-search">查&nbsp;&nbsp;询</button><button icon="ui-icon-refresh">重&nbsp;&nbsp;置</button></div>
+									</div>		
+								</div>				
+							</div>
+				    	</DIV>
+				    	<iframe id="service-center" name="service-center" class="tab-layout-center" src="about:blank" longdesc="@{Admin.push}" frameborder="0" scrolling="auto"></iframe>
+	    	
+				     </div>
+				     <div id="ui-tabs-info"  class="tab-panel">
+				     	<DIV class="tab-layout-west">
+				    		<div class="accordion">	
+								<div>
+									<h3><a href="#">信息采编</a></h3>
+									<div>
+										<div class="content-space"><a href="/secure/forms" target="info-center">转达处理</a></div>
+										<div class="content-space"><a href="/secure/forms" target="info-center">供应商管理</a></div>
+										<div class="content-space"><a href="/secure/forms" target="info-center">服务管理</a></div>
+										<div class="content-space"><a href="/secure/forms" target="info-center">服务审核</a></div>
+										<div class="content-space"><a href="/secure/forms" target="info-center">供应商审核</a></div>
+									</div>		
+								</div>		
+							</div>
+				    	</DIV>
+				    	<iframe id="info-center" name="info-center" class="tab-layout-center" src="about:blank" longdesc="about:blank" frameborder="0" scrolling="auto"></iframe>
+				     </div>
+				     <div id="ui-tabs-sys"  class="tab-panel">
+				     	<DIV class="tab-layout-west">
+				    		<div class="accordion">	
+								<div>
+									<h3><a href="#">系统管理</a></h3>
+									<div>
+										<div class="content-space"><a href="/secure/forms" target="sys-center">行业管理</a></div>
+										<div class="content-space"><a href="/secure/forms" target="sys-center">字典管理</a></div>
+										<div class="content-space"><a href="/secure/forms" target="sys-center">服务分类管理</a></div>
+										<div class="content-space"><a href="/secure/forms" target="sys-center">服务模型管理</a></div>
+										<div class="content-space"><a href="/secure/areas" target="sys-center">地区管理</a></div>
+										<div class="content-space"><a href="/secure/users" target="sys-center">用户管理</a></div>
+										<div class="content-space"><a href="/secure/roles" target="sys-center">角色管理</a></div>
+										<div class="content-space"><a href="/secure/permissioncategorys" target="sys-center">权限分类管理</a></div>
+										<div class="content-space"><a href="/secure/permissions" target="sys-center">权限管理</a></div>
+									</div>		
+								</div>		
+							</div>
+				    	</DIV>
+				    	<iframe id="sys-center" name="sys-center" class="tab-layout-center" src="about:blank" longdesc="/secure/forms" frameborder="0" scrolling="auto"></iframe>
+	    	
+				     </div>
+			     </div>
+			     		   
+			</div>   
+		</DIV>
+		<DIV class="ui-layout-south ui-state-default"><span style="float:left">当前登录:&nbsp;${session.username}&nbsp;&nbsp;${session.role}</span><span style="float:right">&copy;2011&nbsp;xxxx有限公司</span></DIV>
+		
+    </body>
+</html>
